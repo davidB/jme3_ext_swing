@@ -1,13 +1,23 @@
-apply plugin: 'com.jfrog.bintray'
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+	}
+}
+
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility=JavaVersion.VERSION_1_7
 compileJava.options.encoding = 'UTF-8'
 
 version = "0.1.0"
 group = "net.alchim31.jme3"
+def description = "an experimental display of JME into JPanel"
 
 
 repositories {
@@ -28,22 +38,14 @@ sourceSets.main.resources.srcDir 'src/main/java'
 def v_slf4j = '1.7.7'
 def v_jme3 = '3.0.10'
 dependencies {
-	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2'
-	compile "org.slf4j:slf4j-api:${v_slf4j}"
 	provided "com.jme3:jme3-core:${v_jme3}"
 	provided "com.jme3:jme3-desktop:${v_jme3}"
 	provided "com.jme3:jme3-lwjgl:${v_jme3}"
 }
 
-task packageSources(type: Jar) {
+task sourcesJar(type: Jar) {
 	from sourceSets.main.allSource
 	classifier = 'sources'
-}
-
-artifacts {
-	archives(packageSources) {
-		type = 'jar'
-	}
 }
 
 eclipse {
@@ -53,32 +55,64 @@ eclipse {
 	}
 }
 
-buildscript {
-	repositories {
-		jcenter()
+
+
+def pomConfig = {
+	licenses {
+		license {
+			name "Public domain (CC0-1.0)"
+			url "http://creativecommons.org/publicdomain/zero/1.0/"
+			distribution "repo"
+		}
 	}
-	dependencies {
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+	developers {
+		developer {
+			id "davidB"
+			name "David Bernard"
+		}
+	}
+}
+
+publishing {
+	publications {
+		mavenStuff(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+			pom.withXml {
+				def root = asNode()
+				root.appendNode('description', description)
+				root.children().last() + pomConfig
+			}
+		}
 	}
 }
 
 bintray {
-	user = targetRepository_user
-	key = targetRepository_password
+	user = bintray_user
+	key = bintray_api_key
 
-	configurations = ['archives']
-	//publications = ['maven'] //When uploading Maven-based publication files
-	dryRun = false //Whether to run this as dry-run, without deploying
+	publications = ['mavenStuff'] //When uploading Maven-based publication files
+	//dryRun = false //Whether to run this as dry-run, without deploying
 	publish = true //If version should be auto published after an upload
 	pkg {
-		repo = 'VGS-OSS-Releases'
+		repo = 'jme3stuff'
 		name = project.name
-		desc = "JFX Gui bridge for JME with usefull utilities for common usecases."
-		websiteUrl = "https://github.com/empirephoenix/JME3-JFX"
-		issueTrackerUrl = "https://github.com/empirephoenix/JME3-JFX/issues"
-		vcsUrl = "https://github.com/empirephoenix/JME3-JFX.git"
-		licenses = ['BSD 3-Clause']
-		labels = ['jmonkeyengine', 'gui']
+		desc = description
+		websiteUrl = "https://github.com/davidB/${project.name}"
+		issueTrackerUrl = "https://github.com/davidB/${project.name}/issues"
+		vcsUrl = "https://github.com/davidB/${project.name}.git"
+		licenses = ['CC0-1.0']
+		labels = ['jme3']
 		publicDownloadNumbers = true
+		version {
+			name = project.version
+			vcsTag = project.version
+			//attributes = [] //Optional version-level attributes
+			//gpg {
+			//	sign = true //Determines whether to GPG sign the files. The default is false
+			//	passphrase = 'optional, the passphrase for GPG signing'
+			//}
+		}
 	}
 }
+

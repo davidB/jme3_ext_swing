@@ -1,0 +1,84 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+sourceCompatibility=JavaVersion.VERSION_1_7
+compileJava.options.encoding = 'UTF-8'
+
+version = "0.1.0"
+group = "net.alchim31.jme3"
+
+
+repositories {
+	mavenCentral()
+	maven { url "http://updates.jmonkeyengine.org/maven/"}
+}
+
+configurations {
+	provided
+}
+
+sourceSets {
+	main { compileClasspath += configurations.provided }
+	test { compileClasspath += configurations.provided }
+}
+sourceSets.main.resources.srcDir 'src/main/java'
+
+def v_slf4j = '1.7.7'
+def v_jme3 = '3.0.10'
+dependencies {
+	compile group: 'org.jfxtras', name: 'jfxtras-window', version:'8.0-r2'
+	compile "org.slf4j:slf4j-api:${v_slf4j}"
+	provided "com.jme3:jme3-core:${v_jme3}"
+	provided "com.jme3:jme3-desktop:${v_jme3}"
+	provided "com.jme3:jme3-lwjgl:${v_jme3}"
+}
+
+task packageSources(type: Jar) {
+	from sourceSets.main.allSource
+	classifier = 'sources'
+}
+
+artifacts {
+	archives(packageSources) {
+		type = 'jar'
+	}
+}
+
+eclipse {
+	classpath {
+		plusConfigurations += [configurations.provided]
+		noExportConfigurations += [configurations.provided]
+	}
+}
+
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+	}
+}
+
+bintray {
+	user = targetRepository_user
+	key = targetRepository_password
+
+	configurations = ['archives']
+	//publications = ['maven'] //When uploading Maven-based publication files
+	dryRun = false //Whether to run this as dry-run, without deploying
+	publish = true //If version should be auto published after an upload
+	pkg {
+		repo = 'VGS-OSS-Releases'
+		name = project.name
+		desc = "JFX Gui bridge for JME with usefull utilities for common usecases."
+		websiteUrl = "https://github.com/empirephoenix/JME3-JFX"
+		issueTrackerUrl = "https://github.com/empirephoenix/JME3-JFX/issues"
+		vcsUrl = "https://github.com/empirephoenix/JME3-JFX.git"
+		licenses = ['BSD 3-Clause']
+		labels = ['jmonkeyengine', 'gui']
+		publicDownloadNumbers = true
+	}
+}

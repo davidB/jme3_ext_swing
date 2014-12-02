@@ -3,8 +3,12 @@ package jme3_ext_swing;
 import java.awt.Component;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.ContainerAdapter;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
@@ -43,30 +47,19 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 	private AtomicBoolean reshapeNeeded  = new AtomicBoolean(true);
 
 	private ImagePanel imgView;
-	private ComponentListener listener = new ComponentListener() {
-
-		@Override
-		public void componentShown(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
-		}
-
+	private ComponentListener listener = new ComponentAdapter() {
 		@Override
 		public void componentResized(ComponentEvent e) {
 			Component c = e.getComponent();
 			SceneProcessorCopyToImagePanel.this.componentResized(c.getWidth(), c.getHeight(), true);
 		}
-
+	};
+	private ContainerListener listener1 = new ContainerAdapter() {
 		@Override
-		public void componentMoved(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void componentHidden(ComponentEvent e) {
-			// TODO Auto-generated method stub
-
+		public void componentAdded(ContainerEvent e) {
+			super.componentAdded(e);
+			Component c = e.getComponent();
+			SceneProcessorCopyToImagePanel.this.componentResized(c.getWidth(), c.getHeight(), true);
 		}
 	};
 
@@ -96,6 +89,7 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 				imgView = view;
 				if (imgView != null) {
 					imgView.addComponentListener(listener);
+					imgView.addContainerListener(listener1);
 					componentResized(imgView.getWidth(), imgView.getHeight(), true);
 				}
 			}
@@ -211,44 +205,9 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 			byteBuf.get(array);
 			byteBuf.position(0);
 			DataBufferByte dbb = new DataBufferByte(array, array.length);
-			//DataBufferByte dbb = new DataBufferByte(byteBuf.array(), );
-			//			WritableRaster raster = Raster.createInterleavedRaster(dbb,
-			//					width, height,
-			//					width * format.getBitsPerPixel(),
-			//					format.getBitsPerPixel(),
-			//					new int []{ 0, 1, 2 },
-			//					(Point)null);
-			//			final int[] bitMasks = {0xff0000, 0xff00, 0xff, 0xff000000};
-			//			sm = new SinglePixelPackedSampleModel(dbb.getDataType(), width*4, height, bitMasks);
-			//			int[] bm = sm.getBitMasks();
-			//
-			//			//sm = new SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, bitMasks);
-			//			final WritableRaster raster = Raster.createWritableRaster(sm, dbb, null);
-			//			ColorModel colorModel =  new ComponentColorModel(
-			//					ColorSpace.getInstance(ColorSpace.CS_sRGB),
-			//					new int[] { 8, 8, 8 },
-			//					false,
-			//					false,
-			//					Transparency.OPAQUE,
-			//					DataBuffer.TYPE_BYTE);
-			//			ComponentSampleModel cm = new ComponentSampleModel(DataBuffer.TYPE_BYTE,width,height,3,width*3,new int[] {2,1,0});
-			//			final ColorModel cm = new DirectColorModel(
-			//			        32, 0xff0000, 0xff00, 0xff, 0xff000000);
-			//			final ColorModel cm = new DirectColorModel(format.getBitsPerPixel(), bitMasks[0], bitMasks[1], bitMasks[2], bitMasks[3]);
-			//format.getBitsPerPixel()
-			//			final ColorModel cm = new DirectColorModel(32, bitMasks[0], bitMasks[1], bitMasks[2], bitMasks[3]);
-			//			img = new BufferedImage(cm, raster, false, null);
-			//			img = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-
-			//			   img = new BufferedImage(width,height,BufferedImage.TYPE_3BYTE_BGR);
-			//			   sm = new ComponentSampleModel(DataBuffer.TYPE_BYTE,width,height,3,width*3,new int[] {0,1,2});
-			//			   Raster raster = Raster.createRaster(sm,dbb,null);
-			//			   img.setData(raster);
 
 			ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB);
-
 			int[] nBits = {8, 8, 8,8};
-
 			ColorModel cm = new ComponentColorModel(cs, nBits, true, false,
 					Transparency.TRANSLUCENT,
 					DataBuffer.TYPE_BYTE);
@@ -256,9 +215,7 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 			WritableRaster raster = Raster.createInterleavedRaster(
 					dbb,
 					width,height,width*psize,psize, bOffs, null);
-
 			img = new BufferedImage(cm,raster,false,null);
-			//img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		}
 
 		/** SHOULD run in JME'Display thread */
@@ -276,16 +233,8 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 							lastIv.image = img;
 						}
 						invoked.set(false);
-						//IntBuffer intBuf = byteBuf.order(ByteOrder.BIG_ENDIAN).asIntBuffer();
-						//int[] array = new int[intBuf.remaining()];
-						//intBuf.get(array);
-						//byteBuf.array(), byteBuf.capacity()
-						//byte[] array = ((DataBufferByte)img.getData().getDataBuffer()).getData();
-						//byte[] array = new byte[byteBuf.remaining()];
-						//byte[] array = new byte[width*height*4];
 						//System.out.printf(" pos : %d / rem : %d / limit : %d \n", byteBuf.position(), byteBuf.remaining(), byteBuf.limit());
 						byteBuf.position(0);
-						//byteBuf.get(array);
 						//copy + Y flip data
 						for(int y = 0; y < height; y++){
 							for(int x = 0; x < width; x++){

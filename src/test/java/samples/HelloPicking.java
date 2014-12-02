@@ -1,9 +1,11 @@
 package samples;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.Callable;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -39,9 +41,9 @@ public class HelloPicking extends AbstractAppState {
 	private AssetManager assetManager;
 	private Camera cam;
 	private SimpleApplication app;
-	private JPanel panel;
+	private JComponent panel;
 
-	public HelloPicking(JPanel imagePanel) {
+	public HelloPicking(JComponent imagePanel) {
 		panel = imagePanel;
 	}
 
@@ -83,6 +85,20 @@ public class HelloPicking extends AbstractAppState {
 						}
 					});
 				}
+			}
+		});
+		panel.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				System.out.print("event  :" + e);
+				switch(e.getKeyCode()) {
+				case KeyEvent.VK_UP :
+					app.enqueue(upAction);
+					e.consume();
+					break;
+				}
+				super.keyPressed(e);
+
 			}
 		});
 	}
@@ -186,4 +202,18 @@ public class HelloPicking extends AbstractAppState {
 		super.update(tpf);
 		ch.setLocalTranslation(app.getCamera().getWidth() / 2 - ch.getLineWidth()/2, app.getCamera().getHeight() / 2 + ch.getLineHeight()/2, 0);
 	}
+
+	private Callable<Void> upAction = new Callable<Void>(){
+		final Vector3f v = new Vector3f();
+
+		@Override
+		public Void call() throws Exception {
+			cam.getUp(v);
+			v.multLocal(0.1f);
+			v.add(cam.getLocation());
+			cam.setLocation(v);
+			return null;
+		}
+	};
+
 }

@@ -1,10 +1,25 @@
 package samples;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
+import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.KeyStroke;
 
 import jme3_ext_swing.Function;
 import jme3_ext_swing.ImagePanel;
@@ -30,7 +45,7 @@ public class ImagePanelDemo {
 	}
 
 	public static JFrame makeGUI(){
-		JFrame mainFrame = new JFrame("Java Swing Examples");
+		final JFrame mainFrame = new JFrame("Java Swing Examples");
 		mainFrame.setSize(400,400);
 		mainFrame.setLayout(new BorderLayout());
 		JLabel headerLabel = new JLabel("", JLabel.CENTER);
@@ -86,8 +101,44 @@ public class ImagePanelDemo {
 		});
 
 		mainFrame.add(headerLabel, BorderLayout.NORTH);
-		mainFrame.add(imagePanel, BorderLayout.CENTER);
+
 		mainFrame.add(statusLabel, BorderLayout.SOUTH);
+		final Action toggleVisibility = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				imagePanel.setVisible(!imagePanel.isVisible());
+			}
+		};
+		final Action toggleAttachement = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			boolean attach = false;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				attach = ! attach;
+				if (attach) {
+					mainFrame.add(imagePanel, BorderLayout.CENTER);
+					imagePanel.repaint();
+				} else {
+					mainFrame.remove(imagePanel);
+				}
+				mainFrame.repaint();
+			}
+		};
+		JMenuBar menu = createFakeMenuBar(toggleVisibility, toggleAttachement);
+		mainFrame.setJMenuBar(menu);
+
+//		mainFrame.addKeyListener(new KeyAdapter() {
+//			@Override
+//			public void keyReleased(KeyEvent e) {
+//				super.keyReleased(e);
+//				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+//					e.consume();
+//					toggleVisibility.actionPerformed(null);
+//				}
+//			}
+//		});
 		return mainFrame;
 	}
 
@@ -141,4 +192,98 @@ public class ImagePanelDemo {
 		rootNode.addLight(sun);
 		return true;
 	}
+
+	static JMenuBar createFakeMenuBar(Action toggleVisibility, Action toggleAttachment) {
+
+		//Where the GUI is created:
+		JMenuBar menuBar;
+		JMenu menu, submenu;
+		JMenuItem menuItem;
+		JRadioButtonMenuItem rbMenuItem;
+		JCheckBoxMenuItem cbMenuItem;
+
+		//Create the menu bar.
+		menuBar = new JMenuBar();
+
+		//Build the first menu.
+		menu = new JMenu("A Menu");
+		menu.setMnemonic(KeyEvent.VK_A);
+		menu.getAccessibleContext().setAccessibleDescription(
+		        "The only menu in this program that has menu items");
+		menuBar.add(menu);
+
+		//a group of JMenuItems
+		menuItem = new JMenuItem("A text-only menu item",
+		                         KeyEvent.VK_T);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(
+		        KeyEvent.VK_1, ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+		        "This doesn't really do anything");
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Both text and icon",
+		                         new ImageIcon("images/middle.gif"));
+		menuItem.setMnemonic(KeyEvent.VK_B);
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
+		menuItem.setMnemonic(KeyEvent.VK_D);
+		menu.add(menuItem);
+
+		//a group of radio button menu items
+		menu.addSeparator();
+		ButtonGroup group = new ButtonGroup();
+		rbMenuItem = new JRadioButtonMenuItem("A radio button menu item");
+		rbMenuItem.setSelected(true);
+		rbMenuItem.setMnemonic(KeyEvent.VK_R);
+		group.add(rbMenuItem);
+		menu.add(rbMenuItem);
+
+		rbMenuItem = new JRadioButtonMenuItem("Another one");
+		rbMenuItem.setMnemonic(KeyEvent.VK_O);
+		group.add(rbMenuItem);
+		menu.add(rbMenuItem);
+
+		//a group of check box menu items
+		menu.addSeparator();
+		cbMenuItem = new JCheckBoxMenuItem("A check box menu item");
+		cbMenuItem.setMnemonic(KeyEvent.VK_C);
+		menu.add(cbMenuItem);
+
+		cbMenuItem = new JCheckBoxMenuItem("Another one");
+		cbMenuItem.setMnemonic(KeyEvent.VK_H);
+		menu.add(cbMenuItem);
+
+		//a submenu
+		menu.addSeparator();
+		submenu = new JMenu("A submenu");
+		submenu.setMnemonic(KeyEvent.VK_S);
+
+		menuItem = new JMenuItem("An item in the submenu");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(
+		        KeyEvent.VK_2, ActionEvent.ALT_MASK));
+		submenu.add(menuItem);
+
+		menuItem = new JMenuItem("Another item");
+		submenu.add(menuItem);
+		menu.add(submenu);
+
+		//Build second menu in the menu bar.
+		menu = new JMenu("Another Menu");
+		menu.setMnemonic(KeyEvent.VK_N);
+		menu.getAccessibleContext().setAccessibleDescription(
+		        "This menu does nothing");
+		menuBar.add(menu);
+
+		menu = new JMenu("3D");
+		toggleVisibility.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_SPACE);
+		toggleVisibility.putValue(Action.NAME, "Toggle Visibility");
+		menu.add(toggleVisibility);
+		toggleAttachment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+		toggleAttachment.putValue(Action.NAME, "Toggle Attachment");
+		menu.add(toggleAttachment);
+		menuBar.add(menu);
+		return menuBar;
+	}
+
 }

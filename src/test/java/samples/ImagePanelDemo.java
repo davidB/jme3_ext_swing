@@ -1,7 +1,6 @@
 package samples;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 
 import javax.swing.JFrame;
@@ -39,7 +38,7 @@ public class ImagePanelDemo {
 
 		statusLabel.setSize(350,100);
 
-		ImagePanel imagePanel = new ImagePanel();
+		final ImagePanel imagePanel = new ImagePanel();
 		imagePanel.setBackground(Color.GREEN);
 		imagePanel.setSize(600,400);
 		//controlPanel.setLayout(new FlowLayout());
@@ -49,7 +48,9 @@ public class ImagePanelDemo {
 		jme.enqueue(new Function<SimpleApplication, Boolean>() {
 			@Override
 			public Boolean apply(SimpleApplication t) {
-				return createScene(t);
+				//return createScene(t);
+				t.getStateManager().attach(new HelloPicking(imagePanel));
+				return true;
 			}
 		});
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

@@ -189,9 +189,13 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 		public final int height;
 		public final FrameBuffer fb;
 		public final ByteBuffer byteBuf;
+		public final byte[] array;
 		public final BufferedImage img;
 		private ImagePanel lastIv = null;
+		private AtomicBoolean invoked = new AtomicBoolean(false);
 		public  SinglePixelPackedSampleModel sm;
+
+
 
 		static final int BGRA_size = 8 * 4; // format of image returned by  readFrameBuffer (ignoring format in framebuffer.color
 		static final int[] bOffs = {2, 1, 0, 3};
@@ -199,12 +203,11 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 		TransfertImage(int width, int height) {
 			this.width = width;
 			this.height = height;
-
 			fb = new FrameBuffer(width, height, 1);
 			fb.setDepthBuffer(Format.Depth);
 			fb.setColorBuffer(Format.ABGR8);
 			byteBuf = BufferUtils.createByteBuffer(width * height * BGRA_size);
-			byte[] array = new byte[byteBuf.remaining()];
+			array = new byte[width*height*4];
 			byteBuf.get(array);
 			byteBuf.position(0);
 			DataBufferByte dbb = new DataBufferByte(array, array.length);
@@ -264,6 +267,7 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 				byteBuf.clear();
 				rm.getRenderer().readFrameBuffer(fb, byteBuf);
 			}
+			if(!invoked.compareAndSet(false, true)) return;
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					synchronized (byteBuf) {
@@ -271,13 +275,14 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 							lastIv = iv;
 							lastIv.image = img;
 						}
+						invoked.set(false);
 						//IntBuffer intBuf = byteBuf.order(ByteOrder.BIG_ENDIAN).asIntBuffer();
 						//int[] array = new int[intBuf.remaining()];
 						//intBuf.get(array);
 						//byteBuf.array(), byteBuf.capacity()
 						//byte[] array = ((DataBufferByte)img.getData().getDataBuffer()).getData();
 						//byte[] array = new byte[byteBuf.remaining()];
-						byte[] array = new byte[width*height*4];
+						//byte[] array = new byte[width*height*4];
 						//System.out.printf(" pos : %d / rem : %d / limit : %d \n", byteBuf.position(), byteBuf.remaining(), byteBuf.limit());
 						byteBuf.position(0);
 						//byteBuf.get(array);
@@ -291,12 +296,6 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 								array[pixel + 3] = byteBuf.get();
 							}
 						}
-						DataBufferByte dbb = new DataBufferByte(array, array.length);
-						int psize = BGRA_size / DataBuffer.getDataTypeSize(dbb.getDataType());
-						WritableRaster raster = Raster.createInterleavedRaster(
-								dbb,
-								width,height,width*psize,psize, bOffs, null);
-						img.setData(raster);
 						iv.repaint();
 					}
 				}

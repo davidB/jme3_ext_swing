@@ -81,7 +81,6 @@ public class HelloPicking extends AbstractAppState {
 							HelloPicking.this.shoot(new Vector2f(e.getX(), e.getComponent().getHeight() - e.getY())); // y is inversed
 							return null;
 						}
-
 					});
 				}
 			}

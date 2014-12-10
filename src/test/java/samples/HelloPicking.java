@@ -1,6 +1,4 @@
 package samples;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.Callable;
@@ -87,20 +85,6 @@ public class HelloPicking extends AbstractAppState {
 				}
 			}
 		});
-		panel.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				System.out.print("event  :" + e);
-				switch(e.getKeyCode()) {
-				case KeyEvent.VK_UP :
-					app.enqueue(upAction);
-					e.consume();
-					break;
-				}
-				super.keyPressed(e);
-
-			}
-		});
 	}
 
 	public void shoot(Vector2f screenPos) {
@@ -108,8 +92,8 @@ public class HelloPicking extends AbstractAppState {
 		// 1. Reset results list.
 		CollisionResults results = new CollisionResults();
 		// 2. Aim the ray from cam loc to cam direction.
-        Vector3f click3d = cam.getWorldCoordinates(screenPos, 0f).clone();
-        Vector3f dir = cam.getWorldCoordinates(screenPos, 1f).subtractLocal(click3d).normalizeLocal();
+		Vector3f click3d = cam.getWorldCoordinates(screenPos, 0f).clone();
+		Vector3f dir = cam.getWorldCoordinates(screenPos, 1f).subtractLocal(click3d).normalizeLocal();
 		Ray ray = new Ray(click3d, dir);
 		// 3. Collect intersections between Ray and Shootables in results list.
 		shootables.collideWith(ray, results);
@@ -202,18 +186,4 @@ public class HelloPicking extends AbstractAppState {
 		super.update(tpf);
 		ch.setLocalTranslation(app.getCamera().getWidth() / 2 - ch.getLineWidth()/2, app.getCamera().getHeight() / 2 + ch.getLineHeight()/2, 0);
 	}
-
-	private Callable<Void> upAction = new Callable<Void>(){
-		final Vector3f v = new Vector3f();
-
-		@Override
-		public Void call() throws Exception {
-			cam.getUp(v);
-			v.multLocal(0.1f);
-			v.add(cam.getLocation());
-			cam.setLocation(v);
-			return null;
-		}
-	};
-
 }

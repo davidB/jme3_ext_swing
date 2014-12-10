@@ -1,18 +1,17 @@
 package samples;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -20,6 +19,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 
 import jme3_ext_swing.Function;
 import jme3_ext_swing.ImagePanel;
@@ -46,6 +46,7 @@ public class ImagePanelDemo {
 
 	public static JFrame makeGUI(){
 		final JFrame mainFrame = new JFrame("Java Swing Examples");
+		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setSize(400,400);
 		mainFrame.setLayout(new BorderLayout());
 		JLabel headerLabel = new JLabel("", JLabel.CENTER);
@@ -65,9 +66,18 @@ public class ImagePanelDemo {
 			public Boolean apply(SimpleApplication t) {
 				//return createScene(t);
 				t.getStateManager().attach(new HelloPicking(imagePanel));
+				t.getStateManager().attach(new CameraDriverAppState());
+
+				//imagePanel.setFocusable(true);
+				//imagePanel.requestFocusInWindow();
+				CameraDriverInput driver = new CameraDriverInput();
+				driver.jme = t;
+				driver.speed = 1.0f;
+				CameraDriverInput.bindDefaults(imagePanel, driver);
 				return true;
 			}
 		});
+
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
@@ -107,38 +117,54 @@ public class ImagePanelDemo {
 			private static final long serialVersionUID = 1L;
 
 			@Override
+			public Object getValue(String key) {
+				if (Action.SELECTED_KEY.equals(key)){
+					return imagePanel.isVisible();
+				}
+				return super.getValue(key);
+			}
+
+			@Override
 			public void actionPerformed(ActionEvent e) {
-				imagePanel.setVisible(!imagePanel.isVisible());
+				boolean v = !imagePanel.isVisible();
+				imagePanel.setVisible(v);
+				//putValue(Action.SELECTED_KEY, v);
 			}
 		};
 		final Action toggleAttachement = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
-			boolean attach = false;
+
+			@Override
+			public Object getValue(String key) {
+				if (Action.SELECTED_KEY.equals(key)){
+					for (Component c : mainFrame.getComponents()) {
+						if (c == imagePanel) return true;
+					}
+					return false;
+				}
+				return super.getValue(key);
+			}
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				attach = ! attach;
+				boolean attach = !(boolean) getValue(Action.SELECTED_KEY);
 				if (attach) {
 					mainFrame.add(imagePanel, BorderLayout.CENTER);
 					imagePanel.repaint();
+					//imagePanel.requestFocus();
 				} else {
 					mainFrame.remove(imagePanel);
 				}
 				mainFrame.repaint();
+				putValue(Action.SELECTED_KEY, attach);
 			}
 		};
 		JMenuBar menu = createFakeMenuBar(toggleVisibility, toggleAttachement);
 		mainFrame.setJMenuBar(menu);
 
-//		mainFrame.addKeyListener(new KeyAdapter() {
-//			@Override
-//			public void keyReleased(KeyEvent e) {
-//				super.keyReleased(e);
-//				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-//					e.consume();
-//					toggleVisibility.actionPerformed(null);
-//				}
-//			}
-//		});
+		mainFrame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), toggleVisibility);
+		mainFrame.getRootPane().getActionMap().put(toggleVisibility, toggleVisibility);
+		toggleAttachement.actionPerformed(null);
 		return mainFrame;
 	}
 
@@ -278,10 +304,10 @@ public class ImagePanelDemo {
 		menu = new JMenu("3D");
 		toggleVisibility.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_SPACE);
 		toggleVisibility.putValue(Action.NAME, "Toggle Visibility");
-		menu.add(toggleVisibility);
+		menu.add(new JCheckBoxMenuItem(toggleVisibility));
 		toggleAttachment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
 		toggleAttachment.putValue(Action.NAME, "Toggle Attachment");
-		menu.add(toggleAttachment);
+		menu.add(new JCheckBoxMenuItem(toggleAttachment));
 		menuBar.add(menu);
 		return menuBar;
 	}

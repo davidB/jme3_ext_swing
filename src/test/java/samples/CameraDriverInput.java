@@ -14,7 +14,7 @@ import com.jme3.app.Application;
 
 public class CameraDriverInput {
 	public static void bindDefaults(JComponent c, CameraDriverInput driver) {
-		InputMap im = c.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap im = c.getInputMap(JComponent.WHEN_FOCUSED);
 		ActionMap am = c.getActionMap();
 		bind(im, am, KeyEvent.VK_PAGE_UP, 0, driver.upPressed, driver.upReleased);
 		bind(im, am, KeyEvent.VK_PAGE_DOWN, 0, driver.downPressed, driver.downReleased);

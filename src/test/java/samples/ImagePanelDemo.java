@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 
 import javax.swing.AbstractAction;
@@ -18,6 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
@@ -57,6 +60,13 @@ public class ImagePanelDemo {
 		final ImagePanel imagePanel = new ImagePanel();
 		imagePanel.setBackground(Color.GREEN);
 		imagePanel.setSize(600,400);
+		imagePanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				super.mouseEntered(e);
+				e.getComponent().requestFocus();
+			}
+		});
 		//controlPanel.setLayout(new FlowLayout());
 
 		final JmeForImagePanel jme = new JmeForImagePanel();
@@ -110,9 +120,12 @@ public class ImagePanelDemo {
 			}
 		});
 
-		mainFrame.add(headerLabel, BorderLayout.NORTH);
+		JTextArea text = new JTextArea(20, 20);
 
+		mainFrame.add(headerLabel, BorderLayout.NORTH);
 		mainFrame.add(statusLabel, BorderLayout.SOUTH);
+		mainFrame.add(text, BorderLayout.WEST);
+
 		final Action toggleVisibility = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 
@@ -162,7 +175,7 @@ public class ImagePanelDemo {
 		JMenuBar menu = createFakeMenuBar(toggleVisibility, toggleAttachement);
 		mainFrame.setJMenuBar(menu);
 
-		mainFrame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), toggleVisibility);
+		//mainFrame.getRootPane().getInputMap(JComponent.WHEN_).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), toggleVisibility);
 		mainFrame.getRootPane().getActionMap().put(toggleVisibility, toggleVisibility);
 		toggleAttachement.actionPerformed(null);
 		return mainFrame;

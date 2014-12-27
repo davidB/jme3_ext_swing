@@ -188,8 +188,7 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 		private ImagePanel lastIv = null;
 		private AtomicBoolean invoked = new AtomicBoolean(false);
 		public  SinglePixelPackedSampleModel sm;
-
-
+		private boolean first = true;
 
 		static final int BGRA_size = 8 * 4; // format of image returned by  readFrameBuffer (ignoring format in framebuffer.color
 		static final int[] bOffs = {2, 1, 0, 3};
@@ -236,16 +235,24 @@ public class SceneProcessorCopyToImagePanel implements SceneProcessor {
 						//System.out.printf(" pos : %d / rem : %d / limit : %d \n", byteBuf.position(), byteBuf.remaining(), byteBuf.limit());
 						byteBuf.position(0);
 						//copy + Y flip data
+						boolean change = first;
+						first = false;
 						for(int y = 0; y < height; y++){
 							for(int x = 0; x < width; x++){
 								int pixel = ((height-y-1)*width + x) * 4;
-								array[pixel + 0] = byteBuf.get();
-								array[pixel + 1] = byteBuf.get();
-								array[pixel + 2] = byteBuf.get();
-								array[pixel + 3] = byteBuf.get();
+								for(int i = 0; i < 4; i++) {
+									byte o = array[pixel + i];
+									byte b = byteBuf.get();
+									if (change || o != b) {
+										change = true;
+										array[pixel + i] = b;
+									}
+								}
 							}
 						}
-						iv.repaint();
+						if (change) {
+							iv.repaint();
+						}
 					}
 				}
 			});

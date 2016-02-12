@@ -3,20 +3,20 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
-	}
+        classpath "com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3"
+}
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: "nebula.provided-base"
 
 sourceCompatibility=JavaVersion.VERSION_1_7
 compileJava.options.encoding = 'UTF-8'
 
-version = "0.2.1"
-group = "net.alchim31.jme3"
+version = "0.3.0"
+group = "com.github.davidb"
 def description = "an experimental display of JME into JPanel"
 
 
@@ -48,15 +48,6 @@ task sourcesJar(type: Jar) {
 	classifier = 'sources'
 }
 
-eclipse {
-	classpath {
-		plusConfigurations += [configurations.provided]
-		noExportConfigurations += [configurations.provided]
-	}
-}
-
-
-
 def pomConfig = {
 	licenses {
 		license {
@@ -87,32 +78,4 @@ publishing {
 	}
 }
 
-bintray {
-	user = bintray_user
-	key = bintray_api_key
-
-	publications = ['mavenStuff'] //When uploading Maven-based publication files
-	//dryRun = false //Whether to run this as dry-run, without deploying
-	publish = true //If version should be auto published after an upload
-	pkg {
-		repo = 'jme3stuff'
-		name = project.name
-		desc = description
-		websiteUrl = "https://github.com/davidB/${project.name}"
-		issueTrackerUrl = "https://github.com/davidB/${project.name}/issues"
-		vcsUrl = "https://github.com/davidB/${project.name}.git"
-		licenses = ['CC0-1.0']
-		labels = ['jme3']
-		publicDownloadNumbers = true
-		version {
-			name = project.version
-			vcsTag = project.version
-			//attributes = [] //Optional version-level attributes
-			//gpg {
-			//	sign = true //Determines whether to GPG sign the files. The default is false
-			//	passphrase = 'optional, the passphrase for GPG signing'
-			//}
-		}
-	}
-}
 
